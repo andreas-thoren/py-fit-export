@@ -2,7 +2,7 @@ import json
 from pathlib import Path
 from garmin_fit_sdk import Decoder, Stream
 
-class FitExtractor:
+class FitExporter:
     def __init__(self, file_path: Path):
         stream = Stream.from_file(file_path)
         decoder = Decoder(stream)
