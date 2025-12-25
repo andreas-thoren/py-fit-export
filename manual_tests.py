@@ -1,7 +1,7 @@
 from pathlib import Path
-from py_fit_export.core import FitExporter
 from openpyxl import load_workbook
 from openpyxl.worksheet.table import Table
+from py_fit_export.core import FitExporter
 
 
 def print_key_info(activity):
@@ -24,6 +24,6 @@ if __name__ == "__main__":
     test_activity = Path("ACTIVITY.fit")
     assert test_activity.is_file()
 
-    append_table_records(test_activity, Path("test_workbook.xlsx"), "Running sessions", "tblRun")
-    # print_key_info(test_activity)
+    # append_table_records(test_activity, Path("test_workbook.xlsx"), "Running sessions", "tblRun")
+    print_key_info(test_activity)
     # export_to_json(test_activity, Path("activity.json"))
