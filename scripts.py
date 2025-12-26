@@ -11,11 +11,11 @@ log = logging.getLogger(__name__)
 
 def export_fit_files():
     username = "athoren79"
-    # password
+    password = None
     backup_dir = Path("D:\\Andreas\\OneDrive\\Andreas\\träning\\Running\\Workouts")
     auth_token_dir = Path().home() / ".garminexport"
     log_level = "INFO"
-    export_format = "fit"
+    export_format = ["fit"]
     ignore_errors = False
     max_retries = 3
 
@@ -24,7 +24,7 @@ def export_fit_files():
     try:
         incremental_backup(
             username=username,
-            # password=args.password,
+            password=password,
             auth_token_dir=auth_token_dir,
             backup_dir=backup_dir,
             export_formats=export_format,
