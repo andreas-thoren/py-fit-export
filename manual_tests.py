@@ -18,8 +18,9 @@ def test_export_to_json(activity, out_path):
 
 
 def test_export_activity(activity, out_path, column_map):
+    filter_map = {"wrk_sport": "running"}
     export_activity_to_excel(
-        activity, out_path, column_map, "Running sessions", "tblRun"
+        activity, out_path, column_map, "Running sessions", "tblRun", filter_map
     )
 
 

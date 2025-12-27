@@ -15,10 +15,57 @@ from py_fit_export.utils import make_json_safe, make_ref, excel_safe_datetime
 
 
 class FitToExcelExporter:
-    def __init__(self, excel_path: Path, ws_name: str, tbl_name: str):
+    """
+    Export Garmin FIT activity metadata to an existing Excel table.
+
+    This class encapsulates all logic required to open an Excel workbook,
+    locate a worksheet and table, optionally filter activities based on
+    extracted metadata, and append new rows to the table.
+
+    After instantiation, call one of the following methods to perform
+    the actual export:
+    - `export_activity_to_excel` to export a single FIT file
+    - `export_activities_to_excel` to export multiple FIT files
+
+    Instantiating this class alone does not modify the Excel workbook.
+    """
+
+    def __init__(
+        self,
+        excel_path: Path,
+        ws_name: str,
+        tbl_name: str,
+        filter_map: dict[str, Any] | None = None,
+    ) -> None:
+        """
+        Parameters
+        ----------
+        excel_path : Path
+            Path to the target Excel workbook.
+        ws_name : str
+            Name of the worksheet containing the target table.
+        tbl_name : str
+            Name of the Excel table to append rows to.
+        filter_map : dict[str, Any] | None, optional
+            Optional filters applied to extracted FIT metadata before exporting.
+
+            Each key in `filter_map` must correspond to a key produced by
+            `FitInfoExtractor.extract()`.
+
+            Values may be either:
+            - a literal value, in which case the extracted value must be
+              non-None and exactly equal (`==`) for the activity to be exported
+            - a callable `predicate(value) -> bool`, which is invoked with the
+              extracted value and must return True for the activity to be
+              exported
+
+            If any filter fails, the activity is skipped and no Excel row
+            is appended.
+        """
         self.path = excel_path
         self.ws_name = ws_name
         self.tbl_name = tbl_name
+        self.filter_map = copy(filter_map) if filter_map else {}
 
     def _export_excel_wrapper(
         self,
@@ -66,9 +113,28 @@ class FitToExcelExporter:
     def _excel_exporter(
         self, activity_path: Path, column_map: dict[str, str], ws: Worksheet, tbl: Table
     ) -> None:
-        # If adding extraction of other file types below need to be updated
+        # Extract info from fit file by delegating to FitInfoExtractor
         extractor = FitInfoExtractor(activity_path)
         key_info = extractor.extract()
+
+        # If filter_map exists check that values match otherwise return
+        for key, filter_val in self.filter_map.items():
+            fit_info_val = key_info.get(key)
+
+            if callable(filter_val):
+                passed_filter = filter_val(fit_info_val)
+            else:
+                passed_filter = fit_info_val is not None and fit_info_val == filter_val
+
+            if not passed_filter:
+                print(
+                    f"Value in {activity_path} for {key}="
+                    f"{fit_info_val!r} not matching required filter!"
+                    "\nAborting excel export!"
+                )
+                return
+
+        # Convert key names to align with column names in column_map
         row_values: dict[str, Any] = {}
         for col_old, col_new in column_map.items():
             try:
@@ -149,8 +215,9 @@ def export_activity_to_excel(
     column_map: dict[str, str],
     ws_name: str,
     tbl_name: str,
+    filter_map: dict[str, Any] | None = None,
 ) -> None:
-    exporter = FitToExcelExporter(excel_path, ws_name, tbl_name)
+    exporter = FitToExcelExporter(excel_path, ws_name, tbl_name, filter_map)
     exporter.export_activity_to_excel(activity, column_map)
 
 
@@ -160,8 +227,9 @@ def export_activities_to_excel(
     column_map: dict[str, str],
     ws_name: str,
     tbl_name: str,
+    filter_map: dict[str, Any] | None = None,
 ) -> None:
-    exporter = FitToExcelExporter(excel_path, ws_name, tbl_name)
+    exporter = FitToExcelExporter(excel_path, ws_name, tbl_name, filter_map)
     exporter.export_activities_to_excel(activities, column_map)
 
 
