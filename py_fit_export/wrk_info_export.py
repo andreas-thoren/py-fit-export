@@ -1,6 +1,7 @@
 import json
 from collections.abc import Callable
 from copy import copy
+from datetime import datetime, time
 from pathlib import Path
 from typing import Any
 
@@ -10,7 +11,7 @@ from openpyxl.utils import range_boundaries
 from openpyxl.worksheet.table import Table
 from openpyxl.worksheet.worksheet import Worksheet
 from py_fit_export.fit_info_extractor import FitInfoExtractor
-from py_fit_export.utils import make_json_safe, make_ref
+from py_fit_export.utils import make_json_safe, make_ref, excel_safe_datetime
 
 
 def _export_excel_wrapper(
@@ -68,13 +69,6 @@ def _excel_exporter(
     append_table_values(ws, tbl, row_values)
 
 
-def export_to_json(export_path: Path, info_dct: dict[str, Any]) -> None:
-    safe_obj = make_json_safe(info_dct)
-    export_path.write_text(
-        json.dumps(safe_obj, indent=2, ensure_ascii=False), encoding="utf-8"
-    )
-
-
 def append_table_values(
     ws: Worksheet, table: Table, row_values: dict[str, Any]
 ) -> None:
@@ -107,8 +101,11 @@ def append_table_values(
 
     # 4. Set cell values for new row
     for col, val in row_values.items():
+        safe_val = (
+            excel_safe_datetime(val) if isinstance(val, (datetime, time)) else val
+        )
         col_i = min_col + columns[col]
-        ws.cell(row=row_i, column=col_i, value=val)
+        ws.cell(row=row_i, column=col_i, value=safe_val)
 
     # 5. Fix formating of new row and its cells. Also expand formulas to new rows!
     if max_row > min_row:
@@ -130,3 +127,10 @@ def append_table_values(
     # 6. Resize table to include new row
     new_ref = make_ref(min_col, min_row, max_col, row_i)
     table.ref = new_ref
+
+
+def export_to_json(export_path: Path, info_dct: dict[str, Any]) -> None:
+    safe_obj = make_json_safe(info_dct)
+    export_path.write_text(
+        json.dumps(safe_obj, indent=2, ensure_ascii=False), encoding="utf-8"
+    )

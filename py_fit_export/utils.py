@@ -29,4 +29,3 @@ def make_ref(min_col: int, min_row: int, max_col: int, max_row: int) -> str:
     return (
         f"{get_column_letter(min_col)}{min_row}:{get_column_letter(max_col)}{max_row}"
     )
-

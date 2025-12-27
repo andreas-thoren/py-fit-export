@@ -1,5 +1,5 @@
 from pathlib import Path
-from py_fit_export.core import (
+from py_fit_export.wrk_info_export import (
     export_to_json,
     export_activity_to_excel,
     export_activities_to_excel,
