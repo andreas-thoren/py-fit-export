@@ -1,7 +1,7 @@
 from pathlib import Path
 from py_fit_export.core import (
     extract_fit_info,
-    extract_key_info,
+    extract_field_info,
     export_to_json,
     export_activity_to_excel,
     export_activities_to_excel,
@@ -10,7 +10,7 @@ from py_fit_export.core import (
 
 def print_key_info(activity):
     fit_info = extract_fit_info(activity)
-    print(extract_key_info(fit_info))
+    print(extract_field_info(fit_info))
 
 
 def test_export_to_json(activity, out_path):
@@ -37,14 +37,13 @@ if __name__ == "__main__":
     out = Path("test_workbook.xlsx")
     assert test_activity.is_file()
     columns = {
-        "wrk_date": "Date",
+        "wrk_start_time": "Date",
         "wrk_name": "Name",
         "wrk_length": "Distance",
         "wrk_load": "Load",
     }
 
-    # append_table_records(test_activity, Path("test_workbook.xlsx"), "Running sessions", "tblRun")
     # print_key_info(test_activity)
     # test_export_to_json(test_activity, Path("activity.json"))
-    # test_export_activity(test_activity, out, columns)
+    test_export_activity(test_activity, out, columns)
     # test_export_activities(test_activities, out, columns)

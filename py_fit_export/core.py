@@ -11,6 +11,7 @@ from openpyxl.formula.translate import Translator
 from openpyxl.utils import range_boundaries, get_column_letter
 from openpyxl.worksheet.table import Table
 from openpyxl.worksheet.worksheet import Worksheet
+from py_fit_export.fit_info_extractor import FitInfoExtractor
 
 
 def _export_excel_wrapper(
@@ -60,7 +61,7 @@ def _excel_exporter(
     activity_path: Path, column_map: dict[str, str], ws: Worksheet, tbl: Table
 ) -> None:
     fit_info = extract_fit_info(activity_path)
-    key_info = extract_key_info(fit_info)
+    key_info = extract_field_info(fit_info)
     row_values: dict[str, Any] = {}
     for col_old, col_new in column_map.items():
         row_values[col_new] = key_info[col_old]
@@ -79,22 +80,9 @@ def extract_fit_info(activity_path: Path) -> dict[str, Any]:
     return fit_info
 
 
-def extract_key_info(fit_info: dict[str, Any]) -> dict[str, Any]:
-    session = fit_info["session_mesgs"][0]
-
-    workout_name = None
-    if fit_info.get("workout_mesgs"):
-        workout_name = fit_info["workout_mesgs"][0].get("wkt_name")
-
-    start_time = session.get("start_time")
-
-    return {
-        "wrk_sport": session.get("sport"),
-        "wrk_date": start_time.date() if isinstance(start_time, datetime) else None,
-        "wrk_name": workout_name,
-        "wrk_length": session.get("total_distance"),
-        "wrk_load": session.get("training_load_peak"),
-    }
+def extract_field_info(fit_info: dict[str, Any]) -> dict[str, Any]:
+    extractor = FitInfoExtractor(fit_info)
+    return extractor.extract()
 
 
 def export_to_json(export_path: Path, info_dct: dict[str, Any]) -> None:
