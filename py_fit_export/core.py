@@ -1,17 +1,16 @@
 import json
 from collections.abc import Callable
 from copy import copy
-from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from garmin_fit_sdk import Decoder, Stream
 from openpyxl import load_workbook
 from openpyxl.formula.translate import Translator
-from openpyxl.utils import range_boundaries, get_column_letter
+from openpyxl.utils import range_boundaries
 from openpyxl.worksheet.table import Table
 from openpyxl.worksheet.worksheet import Worksheet
 from py_fit_export.fit_info_extractor import FitInfoExtractor
+from py_fit_export.utils import make_json_safe, make_ref
 
 
 def _export_excel_wrapper(
@@ -60,8 +59,8 @@ def export_activities_to_excel(
 def _excel_exporter(
     activity_path: Path, column_map: dict[str, str], ws: Worksheet, tbl: Table
 ) -> None:
-    fit_info = extract_fit_info(activity_path)
-    key_info = extract_field_info(fit_info)
+    extractor = FitInfoExtractor(activity_path)
+    key_info = extractor.extract()
     row_values: dict[str, Any] = {}
     for col_old, col_new in column_map.items():
         row_values[col_new] = key_info[col_old]
@@ -69,44 +68,10 @@ def _excel_exporter(
     append_table_values(ws, tbl, row_values)
 
 
-def extract_fit_info(activity_path: Path) -> dict[str, Any]:
-    stream = Stream.from_file(activity_path)
-    decoder = Decoder(stream)
-    fit_info, fit_errors = decoder.read()
-
-    if fit_errors:
-        print(fit_errors)
-
-    return fit_info
-
-
-def extract_field_info(fit_info: dict[str, Any]) -> dict[str, Any]:
-    extractor = FitInfoExtractor(fit_info)
-    return extractor.extract()
-
-
 def export_to_json(export_path: Path, info_dct: dict[str, Any]) -> None:
-    safe_obj = _make_json_safe(info_dct)
+    safe_obj = make_json_safe(info_dct)
     export_path.write_text(
         json.dumps(safe_obj, indent=2, ensure_ascii=False), encoding="utf-8"
-    )
-
-
-def _make_json_safe(obj: Any) -> Any:
-    if isinstance(obj, dict):
-        return {k: _make_json_safe(v) for k, v in obj.items()}
-    if isinstance(obj, list):
-        return [_make_json_safe(v) for v in obj]
-    if hasattr(obj, "isoformat"):  # datetime
-        return obj.isoformat()
-    if isinstance(obj, bytes):
-        return obj.hex()
-    return obj
-
-
-def _make_ref(min_col: int, min_row: int, max_col: int, max_row: int) -> str:
-    return (
-        f"{get_column_letter(min_col)}{min_row}:{get_column_letter(max_col)}{max_row}"
     )
 
 
@@ -163,5 +128,5 @@ def append_table_values(
                 ).translate_formula(dst.coordinate)
 
     # 6. Resize table to include new row
-    new_ref = _make_ref(min_col, min_row, max_col, row_i)
+    new_ref = make_ref(min_col, min_row, max_col, row_i)
     table.ref = new_ref

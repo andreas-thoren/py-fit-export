@@ -1,21 +1,20 @@
 from pathlib import Path
 from py_fit_export.core import (
-    extract_fit_info,
-    extract_field_info,
     export_to_json,
     export_activity_to_excel,
     export_activities_to_excel,
 )
+from py_fit_export.fit_info_extractor import FitInfoExtractor
 
 
 def print_key_info(activity):
-    fit_info = extract_fit_info(activity)
-    print(extract_field_info(fit_info))
+    extractor = FitInfoExtractor(activity)
+    print(extractor.extract())
 
 
 def test_export_to_json(activity, out_path):
-    fit_info = extract_fit_info(activity)
-    export_to_json(out_path, fit_info)
+    extractor = FitInfoExtractor(activity)
+    export_to_json(out_path, extractor.fit)
 
 
 def test_export_activity(activity, out_path, column_map):
@@ -43,7 +42,7 @@ if __name__ == "__main__":
         "wrk_load": "Load",
     }
 
-    # print_key_info(test_activity)
+    print_key_info(test_activity)
     # test_export_to_json(test_activity, Path("activity.json"))
-    test_export_activity(test_activity, out, columns)
+    # test_export_activity(test_activity, out, columns)
     # test_export_activities(test_activities, out, columns)
