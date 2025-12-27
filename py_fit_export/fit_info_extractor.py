@@ -1,5 +1,6 @@
 from datetime import datetime
 from typing import Any, Iterable
+from py_fit_export.utils import excel_safe_datetime
 
 
 class FitInfoExtractor:
@@ -36,7 +37,7 @@ class FitInfoExtractor:
 
     def wrk_start_time(self) -> datetime | None:
         v = self._session.get("start_time")
-        return v if isinstance(v, datetime) else None
+        return excel_safe_datetime(v) if isinstance(v, datetime) else None
 
     def wrk_name(self) -> str | None:
         return self._workout.get("wkt_name")

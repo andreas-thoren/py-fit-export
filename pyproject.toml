@@ -4,17 +4,18 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "py-fit-export"
-version = "0.1.0a1"
+version = "0.1.0"
 classifiers = ["Development Status :: 3 - Alpha"]
 description = "Extract Garmin FIT activity data and export it to flat formats (Excel, CSV)."
 readme = { file = "README.md", content-type = "text/markdown" }
-requires-python = ">=3.10"
-license = { text = "MIT" }
+requires-python = ">=3.10,<3.13"
 authors = [{ name = "Andreas Thorén" }]
-dependencies = ["garmin-fit-sdk", "openpyxl"]
-
-[project.scripts]
-py-fit-export = "py_fit_export.cli:main"
+license = { text = "MIT" }
+dependencies = [
+    "garmin-fit-sdk",
+    "openpyxl",
+    "garminexport"
+]
 
 [tool.setuptools]
 packages = ["py_fit_export"]
