@@ -1,6 +1,4 @@
-def main():
-    print("Hello from py-fit-export!")
-
+from py_fit_export.cli import main
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())
